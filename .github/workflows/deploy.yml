@@ -1,0 +1,40 @@
+# .github/workflows/deploy.yml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # 监听 main 分支的推送事件
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x  # 使用 LTS 版本，更稳定
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Build project
+        run: |
+          npm run build-gh-pages
+          cp dist/browser/index.html dist/browser/404.html  # 支持单页应用路由
+          
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages  # 部署到 gh-pages 分支
+          folder: dist/browser  # 构建输出目录
+          clean: true  # 清理旧文件
